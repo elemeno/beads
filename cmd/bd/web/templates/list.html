@@ -1,0 +1,159 @@
+{{define "list.html"}}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.Title}} - Beads</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>🔗 Beads</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/issues" {{if eq .CurrentPath "/issues"}}class="secondary"{{end}}>Issues</a></li>
+            <li><a href="/issues/new" {{if eq .CurrentPath "/issues/new"}}class="secondary"{{end}}>New Issue</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        {{if .Error}}
+        <article class="error-message">
+            <p><strong>Error:</strong> {{.Error}}</p>
+        </article>
+        {{end}}
+
+        {{if .Success}}
+        <article class="success-message">
+            <p><strong>Success:</strong> {{.Success}}</p>
+        </article>
+        {{end}}
+
+        <article>
+    <header>
+        <h1>Issues</h1>
+        <p>Total: {{.Data.Total}} issues</p>
+    </header>
+
+    <form method="GET" action="/issues" class="filter-form">
+        <div class="grid">
+            <div>
+                <label for="status">Status</label>
+                <select name="status" id="status" onchange="this.form.submit()">
+                    <option value="" {{if eq .Data.Filters.Status ""}}selected{{end}}>All</option>
+                    <option value="open" {{if eq .Data.Filters.Status "open"}}selected{{end}}>Open</option>
+                    <option value="in_progress" {{if eq .Data.Filters.Status "in_progress"}}selected{{end}}>In Progress</option>
+                    <option value="blocked" {{if eq .Data.Filters.Status "blocked"}}selected{{end}}>Blocked</option>
+                    <option value="closed" {{if eq .Data.Filters.Status "closed"}}selected{{end}}>Closed</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="priority">Priority</label>
+                <select name="priority" id="priority" onchange="this.form.submit()">
+                    <option value="" {{if eq .Data.Filters.Priority ""}}selected{{end}}>All</option>
+                    <option value="0" {{if eq .Data.Filters.Priority "0"}}selected{{end}}>P0 (Critical)</option>
+                    <option value="1" {{if eq .Data.Filters.Priority "1"}}selected{{end}}>P1 (High)</option>
+                    <option value="2" {{if eq .Data.Filters.Priority "2"}}selected{{end}}>P2 (Medium)</option>
+                    <option value="3" {{if eq .Data.Filters.Priority "3"}}selected{{end}}>P3 (Low)</option>
+                    <option value="4" {{if eq .Data.Filters.Priority "4"}}selected{{end}}>P4 (Backlog)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="type">Type</label>
+                <select name="type" id="type" onchange="this.form.submit()">
+                    <option value="" {{if eq .Data.Filters.Type ""}}selected{{end}}>All</option>
+                    <option value="bug" {{if eq .Data.Filters.Type "bug"}}selected{{end}}>Bug</option>
+                    <option value="feature" {{if eq .Data.Filters.Type "feature"}}selected{{end}}>Feature</option>
+                    <option value="task" {{if eq .Data.Filters.Type "task"}}selected{{end}}>Task</option>
+                    <option value="epic" {{if eq .Data.Filters.Type "epic"}}selected{{end}}>Epic</option>
+                    <option value="chore" {{if eq .Data.Filters.Type "chore"}}selected{{end}}>Chore</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="sort">Sort By</label>
+                <select name="sort" id="sort" onchange="this.form.submit()">
+                    <option value="id" {{if or (eq .Data.Filters.Sort "") (eq .Data.Filters.Sort "id")}}selected{{end}}>ID</option>
+                    <option value="title" {{if eq .Data.Filters.Sort "title"}}selected{{end}}>Title</option>
+                    <option value="updated" {{if eq .Data.Filters.Sort "updated"}}selected{{end}}>Updated</option>
+                </select>
+                <input type="hidden" name="order" value="{{if .Data.Filters.Order}}{{.Data.Filters.Order}}{{else}}desc{{end}}">
+            </div>
+        </div>
+
+        <details>
+            <summary>Advanced Filters</summary>
+            <div class="grid">
+                <div>
+                    <label for="parent">Filter by Parent</label>
+                    <input type="text" name="parent" id="parent" placeholder="bd-42" value="{{.Data.Filters.ParentID}}">
+                    <small>Show issues that depend on this issue</small>
+                </div>
+
+                <div>
+                    <label for="discovered">Discovered From</label>
+                    <input type="text" name="discovered" id="discovered" placeholder="bd-42" value="{{.Data.Filters.DiscoveredFrom}}">
+                    <small>Show issues discovered from this issue</small>
+                </div>
+
+                <div>
+                    <label for="assignee">Assignee</label>
+                    <input type="text" name="assignee" id="assignee" placeholder="username" value="{{.Data.Filters.Assignee}}">
+                </div>
+
+                <div>
+                    <button type="submit">Apply Filters</button>
+                </div>
+            </div>
+        </details>
+    </form>
+
+    {{if .Data.Issues}}
+    <figure>
+        <table role="grid">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Type</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Data.Issues}}
+                <tr>
+                    <td><a href="/{{.ID}}">{{.ID}}</a></td>
+                    <td><a href="/{{.ID}}">{{.Title}}</a></td>
+                    <td><span class="badge badge-{{.Status}}">{{.Status}}</span></td>
+                    <td>P{{.Priority}}</td>
+                    <td><span class="badge badge-type">{{.IssueType}}</span></td>
+                    <td>{{.UpdatedAt.Format "2006-01-02 15:04"}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </figure>
+    {{else}}
+    <p>No issues found. <a href="/issues/new">Create one?</a></p>
+    {{end}}
+</article>
+    </main>
+
+    <footer class="container">
+        <small>
+            Beads Issue Tracker -
+            <a href="https://github.com/steveyegge/beads" target="_blank">GitHub</a>
+        </small>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
+{{end}}

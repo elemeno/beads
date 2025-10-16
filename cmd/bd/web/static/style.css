@@ -1,0 +1,234 @@
+/* Custom styles for Beads web interface */
+
+:root {
+    --badge-open: #0d9488;
+    --badge-in-progress: #2563eb;
+    --badge-blocked: #dc2626;
+    --badge-closed: #6b7280;
+}
+
+/* Header customizations */
+.issue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.issue-header h1 {
+    flex: 1;
+    margin: 0;
+    padding: 0.5rem;
+    border: 2px solid transparent;
+    border-radius: 4px;
+}
+
+.issue-header h1:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--card-background-color);
+}
+
+.issue-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.issue-meta {
+    margin-bottom: 1.5rem;
+}
+
+.issue-meta label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    margin-right: 0.5rem;
+}
+
+.badge-open {
+    background-color: var(--badge-open);
+}
+
+.badge-in_progress {
+    background-color: var(--badge-in-progress);
+}
+
+.badge-blocked {
+    background-color: var(--badge-blocked);
+}
+
+.badge-closed {
+    background-color: var(--badge-closed);
+}
+
+.badge-type {
+    background-color: var(--primary);
+}
+
+.badge-dep-blocks {
+    background-color: #dc2626;
+}
+
+.badge-dep-parent-child {
+    background-color: #7c3aed;
+}
+
+.badge-dep-related {
+    background-color: #059669;
+}
+
+.badge-dep-discovered-from {
+    background-color: #ea580c;
+}
+
+/* Filter form */
+.filter-form {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--card-background-color);
+    border-radius: 8px;
+}
+
+/* Auto-save indicators */
+.auto-save,
+.auto-save-input,
+.auto-save-textarea {
+    transition: border-color 0.2s;
+}
+
+.saving {
+    border-color: #f59e0b !important;
+}
+
+.saved {
+    border-color: #10b981 !important;
+}
+
+.error {
+    border-color: #ef4444 !important;
+}
+
+/* Dependencies */
+.dependencies ul,
+.dependents ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.dependencies li,
+.dependents li {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: var(--card-background-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.remove-dep {
+    margin-left: auto;
+    padding: 0.25rem 0.5rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.remove-dep:hover {
+    background: #dc2626;
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--card-background-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.notification.success {
+    border-left: 4px solid #10b981;
+}
+
+.notification.error {
+    border-left: 4px solid #ef4444;
+}
+
+/* Button groups */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Labels */
+.labels {
+    margin: 1rem 0;
+}
+
+.labels .badge {
+    background-color: var(--secondary);
+}
+
+/* Error and success messages */
+.error-message {
+    background-color: #fee2e2;
+    border-left: 4px solid #ef4444;
+    color: #991b1b;
+}
+
+.success-message {
+    background-color: #d1fae5;
+    border-left: 4px solid #10b981;
+    color: #065f46;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    table {
+        font-size: 0.875rem;
+    }
+
+    .issue-header {
+        flex-direction: column;
+    }
+
+    .issue-actions {
+        width: 100%;
+        margin-top: 1rem;
+    }
+}
+
+/* Loading spinner */
+.spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

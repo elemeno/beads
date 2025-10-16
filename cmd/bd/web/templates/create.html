@@ -1,0 +1,122 @@
+{{define "create.html"}}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create New Issue - Beads</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>🔗 Beads</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/issues">Issues</a></li>
+            <li><a href="/issues/new" class="secondary">New Issue</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        {{if .Error}}
+        <article class="error-message">
+            <p><strong>Error:</strong> {{.Error}}</p>
+        </article>
+        {{end}}
+
+        {{if .Success}}
+        <article class="success-message">
+            <p><strong>Success:</strong> {{.Success}}</p>
+        </article>
+        {{end}}
+
+        {{$data := .Data}}
+
+        <article>
+            <header>
+                <h1>Create New Issue</h1>
+            </header>
+
+            <form method="POST" action="/issues">
+                <label for="title">
+                    Title
+                    <input type="text" id="title" name="title" required placeholder="Issue title" autofocus>
+                </label>
+
+                <div class="grid">
+                    <div>
+                        <label for="priority">
+                            Priority
+                            <select id="priority" name="priority">
+                                {{range $data.Priorities}}
+                                <option value="{{.}}" {{if eq . 2}}selected{{end}}>P{{.}} {{if eq . 0}}(Critical){{else if eq . 1}}(High){{else if eq . 2}}(Medium){{else if eq . 3}}(Low){{else}}(Backlog){{end}}</option>
+                                {{end}}
+                            </select>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label for="type">
+                            Type
+                            <select id="type" name="type">
+                                {{range $data.IssueTypes}}
+                                <option value="{{.}}" {{if eq . "task"}}selected{{end}}>{{.}}</option>
+                                {{end}}
+                            </select>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label for="assignee">
+                            Assignee
+                            <input type="text" id="assignee" name="assignee" placeholder="username">
+                        </label>
+                    </div>
+                </div>
+
+                <label for="description">
+                    Description
+                    <textarea id="description" name="description" rows="5" placeholder="Describe the issue..."></textarea>
+                </label>
+
+                <details>
+                    <summary>Additional Details (Optional)</summary>
+
+                    <label for="design">
+                        Design Notes
+                        <textarea id="design" name="design" rows="5" placeholder="Design considerations..."></textarea>
+                    </label>
+
+                    <label for="acceptance_criteria">
+                        Acceptance Criteria
+                        <textarea id="acceptance_criteria" name="acceptance_criteria" rows="5"
+                                 placeholder="- Criteria 1&#10;- Criteria 2&#10;- Criteria 3"></textarea>
+                    </label>
+
+                    <label for="notes">
+                        Notes
+                        <textarea id="notes" name="notes" rows="3" placeholder="Additional notes..."></textarea>
+                    </label>
+                </details>
+
+                <div class="button-group">
+                    <button type="submit">Create Issue</button>
+                    <a href="/issues" role="button" class="secondary">Cancel</a>
+                </div>
+            </form>
+        </article>
+    </main>
+
+    <footer class="container">
+        <small>
+            Beads Issue Tracker -
+            <a href="https://github.com/steveyegge/beads" target="_blank">GitHub</a>
+        </small>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
+{{end}}

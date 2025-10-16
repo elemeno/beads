@@ -38,6 +38,7 @@ Agents report that they enjoy working with Beads, and they will use it spontaneo
 - 🤖 **Agent-friendly** - `--json` flags for programmatic integration
 - 📦 **Git-versioned** - JSONL records stored in git, synced across machines
 - 🌍 **Distributed by design** - Agents on multiple machines share one logical database via git
+- 🌐 **Web interface** - Optional browser-based UI for visual management
 - 🏗️ **Extensible** - Add your own tables to the SQLite database
 - 🔍 **Multi-project isolation** - Each project gets its own database, auto-discovered by directory
 - 🌲 **Dependency trees** - Visualize full dependency graphs
@@ -369,6 +370,63 @@ bd stats
 # JSON output for agents
 bd ready --json
 ```
+
+## Web Interface
+
+For users who prefer a visual interface, bd includes a built-in web server:
+
+```bash
+# Start web server (default: http://127.0.0.1:8080)
+bd web
+
+# Custom port
+bd web --port 3000
+
+# Bind to all interfaces (allow remote access)
+bd web --bind 0.0.0.0:8080
+
+# Open browser automatically
+bd web --open
+
+# Debug mode (verbose logging)
+bd web --debug
+```
+
+The web interface provides:
+- **List view** - Browse all issues with filtering and sorting
+  - Filter by status (open, in_progress, blocked, closed)
+  - Filter by parent, child, or discovered-from relationships
+  - Sort by ID, title, or update date
+- **Issue detail** - View and edit issues inline
+  - Edit title, description, status, priority, type, assignee
+  - Auto-save as you type (1-second debounce)
+  - Manage dependencies (add/remove)
+  - View related issues with clickable links
+- **Create issues** - Form-based issue creation
+- **Direct URL access** - Navigate to issues via `/bd-42` or `/test-web-1`
+
+**Features:**
+- 🎨 Clean, responsive design using Pico.css
+- ⚡ Fast server-side rendering
+- 💾 Auto-save for all editable fields
+- 🔗 Dependency visualization with type badges
+- 📱 Mobile-friendly responsive layout
+- ✨ No build step required - everything embedded in the binary
+
+**Architecture:**
+- Server: Go with chi router
+- Templates: html/template (server-side rendering)
+- Frontend: Vanilla JavaScript (no frameworks)
+- Styling: Pico.css + custom CSS
+- All assets embedded in binary via go:embed
+
+The web interface is perfect for:
+- Humans supervising agent work
+- Quick visual review of issue status
+- Editing issue details without CLI
+- Understanding dependency relationships at a glance
+
+**Note:** The web interface is read-write. Changes made in the web UI are immediately saved to the SQLite database and will auto-export to JSONL (with the standard 5-second debounce).
 
 ## Database Discovery
 

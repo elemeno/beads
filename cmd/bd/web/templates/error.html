@@ -1,0 +1,46 @@
+{{define "error.html"}}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error - Beads</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>🔗 Beads</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/issues">Issues</a></li>
+            <li><a href="/issues/new">New Issue</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <article>
+            <header>
+                <h1>Error</h1>
+            </header>
+
+            <p>{{.Error}}</p>
+
+            <footer>
+                <a href="/issues" role="button">← Back to Issues</a>
+            </footer>
+        </article>
+    </main>
+
+    <footer class="container">
+        <small>
+            Beads Issue Tracker -
+            <a href="https://github.com/steveyegge/beads" target="_blank">GitHub</a>
+        </small>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
+{{end}}

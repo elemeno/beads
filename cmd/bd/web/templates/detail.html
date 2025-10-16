@@ -1,0 +1,192 @@
+{{define "detail.html"}}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.Data.Issue.ID}}: {{.Data.Issue.Title}} - Beads</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>🔗 Beads</strong></li>
+        </ul>
+        <ul>
+            <li><a href="/issues">Issues</a></li>
+            <li><a href="/issues/new">New Issue</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        {{if .Error}}
+        <article class="error-message">
+            <p><strong>Error:</strong> {{.Error}}</p>
+        </article>
+        {{end}}
+
+        {{if .Success}}
+        <article class="success-message">
+            <p><strong>Success:</strong> {{.Success}}</p>
+        </article>
+        {{end}}
+
+        {{$data := .Data}}
+        {{$issue := $data.Issue}}
+
+        <article>
+            <header>
+                <div class="issue-header">
+                    <h1 contenteditable="true" data-field="title" data-issue-id="{{$issue.ID}}" class="editable-title">
+                        {{$issue.Title}}
+                    </h1>
+                    <div class="issue-actions">
+                        <select data-field="status" data-issue-id="{{$issue.ID}}" class="auto-save">
+                            {{range $data.Statuses}}
+                            <option value="{{.}}" {{if eq . $issue.Status}}selected{{end}}>{{.}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="issue-meta grid">
+                    <div>
+                        <label>Priority:</label>
+                        <select data-field="priority" data-issue-id="{{$issue.ID}}" class="auto-save">
+                            {{range $data.Priorities}}
+                            <option value="{{.}}" {{if eq . $issue.Priority}}selected{{end}}>P{{.}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Type:</label>
+                        <select data-field="issue_type" data-issue-id="{{$issue.ID}}" class="auto-save">
+                            {{range $data.IssueTypes}}
+                            <option value="{{.}}" {{if eq . $issue.IssueType}}selected{{end}}>{{.}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Assignee:</label>
+                        <input type="text" value="{{$issue.Assignee}}" placeholder="username"
+                               data-field="assignee" data-issue-id="{{$issue.ID}}" class="auto-save-input">
+                    </div>
+                </div>
+
+                <small>
+                    Created: {{$issue.CreatedAt.Format "2006-01-02 15:04"}} |
+                    Updated: {{$issue.UpdatedAt.Format "2006-01-02 15:04"}}
+                </small>
+            </header>
+
+            <section>
+                <h3>Description</h3>
+                <textarea data-field="description" data-issue-id="{{$issue.ID}}"
+                          class="auto-save-textarea" rows="5">{{$issue.Description}}</textarea>
+            </section>
+
+            <details>
+                <summary>Design Notes</summary>
+                <textarea data-field="design" data-issue-id="{{$issue.ID}}"
+                          class="auto-save-textarea" rows="8">{{$issue.Design}}</textarea>
+            </details>
+
+            <details>
+                <summary>Acceptance Criteria</summary>
+                <textarea data-field="acceptance_criteria" data-issue-id="{{$issue.ID}}"
+                          class="auto-save-textarea" rows="5">{{$issue.AcceptanceCriteria}}</textarea>
+            </details>
+
+            <details>
+                <summary>Notes</summary>
+                <textarea data-field="notes" data-issue-id="{{$issue.ID}}"
+                          class="auto-save-textarea" rows="5">{{$issue.Notes}}</textarea>
+            </details>
+
+            {{if $data.Labels}}
+            <div class="labels">
+                <strong>Labels:</strong>
+                {{range $data.Labels}}
+                <span class="badge">{{.}}</span>
+                {{end}}
+            </div>
+            {{end}}
+
+            <hr>
+
+            <section class="dependencies">
+                <h3>Dependencies</h3>
+
+                {{if $data.Dependencies}}
+                <h4>Depends On ({{len $data.Dependencies}})</h4>
+                <ul>
+                    {{range $data.Dependencies}}
+                    <li>
+                        <span class="badge badge-dep-{{.Type}}">{{.Type}}</span>
+                        <a href="/{{.Issue.ID}}">{{.Issue.ID}}: {{.Issue.Title}}</a>
+                        <button class="remove-dep" data-issue-id="{{$issue.ID}}" data-depends-on="{{.Issue.ID}}"
+                                data-type="{{.Type}}" title="Remove dependency">✕</button>
+                    </li>
+                    {{end}}
+                </ul>
+                {{else}}
+                <p><small>No dependencies</small></p>
+                {{end}}
+
+                <details>
+                    <summary>Add Dependency</summary>
+                    <form id="add-dep-form" data-issue-id="{{$issue.ID}}">
+                        <div class="grid">
+                            <div>
+                                <input type="text" id="depends-on-id" placeholder="bd-42" required>
+                                <small>Issue ID this depends on</small>
+                            </div>
+                            <div>
+                                <select id="dep-type">
+                                    {{range $data.DependencyTypes}}
+                                    <option value="{{.}}">{{.}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <div>
+                                <button type="submit">Add</button>
+                            </div>
+                        </div>
+                    </form>
+                </details>
+            </section>
+
+            {{if $data.Dependents}}
+            <section class="dependents">
+                <h3>Blocks / Depended On By ({{len $data.Dependents}})</h3>
+                <ul>
+                    {{range $data.Dependents}}
+                    <li>
+                        <span class="badge badge-dep-{{.Type}}">{{.Type}}</span>
+                        <a href="/{{.Issue.ID}}">{{.Issue.ID}}: {{.Issue.Title}}</a>
+                    </li>
+                    {{end}}
+                </ul>
+            </section>
+            {{end}}
+
+            <footer>
+                <a href="/issues" role="button" class="secondary">← Back to Issues</a>
+            </footer>
+        </article>
+
+        <div id="notification" class="notification" style="display: none;"></div>
+    </main>
+
+    <footer class="container">
+        <small>
+            Beads Issue Tracker -
+            <a href="https://github.com/steveyegge/beads" target="_blank">GitHub</a>
+        </small>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
+{{end}}
