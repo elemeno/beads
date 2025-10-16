@@ -7,9 +7,9 @@
   "plugins": [
     {
       "name": "beads",
-      "source": ".",
+      "source": "./",
       "description": "AI-supervised issue tracker for coding workflows",
-      "version": "0.9.0"
+      "version": "0.9.5"
     }
   ]
 }

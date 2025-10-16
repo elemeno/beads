@@ -10,6 +10,13 @@ Drop Beads into any project where you're using a coding agent, and you'll enjoy 
 
 Instant start:
 
+**Claude Code users:**
+```bash
+/plugin marketplace add steveyegge/beads
+/plugin install beads
+```
+
+**Everyone else:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/install.sh | bash
 ```
@@ -47,7 +54,20 @@ Agents report that they enjoy working with Beads, and they will use it spontaneo
 
 ## Installation
 
-### Quick Install (Recommended)
+### Homebrew (macOS/Linux)
+
+```bash
+brew tap steveyegge/beads
+brew install bd
+```
+
+**Why Homebrew?**
+- ✅ Simple one-command install
+- ✅ Automatic updates via `brew upgrade`
+- ✅ No need to install Go
+- ✅ Handles PATH setup automatically
+
+### Quick Install Script (All Platforms)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/install.sh | bash
@@ -83,9 +103,9 @@ paru -S beads-git
 
 Thanks to [@v4rgas](https://github.com/v4rgas) for maintaining the AUR package!
 
-### Claude Code Plugin
+### Claude Code Plugin (Recommended for Claude Code Users)
 
-Prefer a one-command installation in Claude Code? Install the beads plugin for instant access via slash commands and MCP tools:
+**The easiest way to use Beads in Claude Code!** One-command installation with zero configuration:
 
 ```bash
 # In Claude Code
@@ -93,13 +113,61 @@ Prefer a one-command installation in Claude Code? Install the beads plugin for i
 /plugin install beads
 ```
 
-The plugin includes:
-- Slash commands: `/bd-ready`, `/bd-create`, `/bd-show`, `/bd-update`, `/bd-close`, etc.
-- Full MCP server with all bd tools
-- Task agent for autonomous execution
-- Auto-configured for instant use
+**Why use the plugin?**
+- ✨ **Zero manual setup** - No need to install Go or build from source
+- 🔧 **MCP tools built-in** - Agents can use beads directly without Bash commands
+- ⚡ **Instant availability** - Works immediately after plugin install
+- 🎯 **Slash commands** - Quick access to common operations
+- 🤖 **Agent-ready** - MCP tools like `mcp__plugin_beads_beads__ready`, `mcp__plugin_beads_beads__create`, etc.
+
+**What you get:**
+- **Slash commands**: `/bd-ready`, `/bd-create`, `/bd-show`, `/bd-update`, `/bd-close`, etc.
+- **Full MCP server**: All bd tools available via MCP protocol (agents use these automatically)
+- **Task agent**: Autonomous task execution
+- **Auto-configured**: bd CLI installed and configured automatically
+
+**For agents:** After plugin installation, agents can use MCP tools directly instead of calling `bd` commands via Bash. The plugin provides tools like:
+- `mcp__plugin_beads_beads__ready` - Find ready work
+- `mcp__plugin_beads_beads__create` - Create new issues
+- `mcp__plugin_beads_beads__update` - Update issue status
+- `mcp__plugin_beads_beads__show` - Show issue details
+- ...and all other bd commands
 
 See [PLUGIN.md](PLUGIN.md) for complete plugin documentation.
+
+### MCP Server (For Sourcegraph Amp, Claude Desktop, and other MCP clients)
+
+If you're using an MCP-compatible tool other than Claude Code, you can install the beads MCP server:
+
+```bash
+# Using uv (recommended)
+uv tool install beads-mcp
+
+# Or using pip
+pip install beads-mcp
+```
+
+Then add to your MCP client configuration. For Claude Desktop, add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+
+```json
+{
+  "mcpServers": {
+    "beads": {
+      "command": "beads-mcp"
+    }
+  }
+}
+```
+
+For other MCP clients, refer to their documentation for how to configure MCP servers.
+
+**What you get:**
+- Full bd functionality exposed via MCP protocol
+- Tools for creating, updating, listing, and closing issues
+- Ready work detection and dependency management
+- All without requiring Bash commands
+
+See [integrations/beads-mcp/README.md](integrations/beads-mcp/README.md) for detailed MCP server documentation.
 
 #### Windows 11
 For Windows you must build from source.
@@ -994,7 +1062,7 @@ See [examples/](examples/) for scripting patterns. Contributions welcome!
 
 ### Is this production-ready?
 
-**Current status: Alpha (v0.9.0)**
+**Current status: Alpha (v0.9.5)**
 
 bd is in active development and being dogfooded on real projects. The core functionality (create, update, dependencies, ready work, collision resolution) is stable and well-tested. However:
 
@@ -1178,7 +1246,13 @@ go build -o bd ./cmd/bd
 
 # Run
 ./bd create "Test issue"
+
+# Bump version
+./scripts/bump-version.sh 0.9.3           # Update all versions, show diff
+./scripts/bump-version.sh 0.9.3 --commit  # Update and auto-commit
 ```
+
+See [scripts/README.md](scripts/README.md) for more development scripts.
 
 ## License
 

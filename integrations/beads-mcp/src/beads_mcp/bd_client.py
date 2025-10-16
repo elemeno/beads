@@ -2,6 +2,8 @@
 
 import asyncio
 import json
+import os
+import re
 
 from .config import load_config
 from .models import (
@@ -28,7 +30,24 @@ class BdError(Exception):
 class BdNotFoundError(BdError):
     """Raised when bd command is not found."""
 
-    pass
+    @staticmethod
+    def installation_message(attempted_path: str) -> str:
+        """Get helpful installation message.
+
+        Args:
+            attempted_path: Path where we tried to find bd
+
+        Returns:
+            Formatted error message with installation instructions
+        """
+        return (
+            f"bd CLI not found at: {attempted_path}\n\n"
+            "The beads Claude Code plugin requires the bd CLI to be installed separately.\n\n"
+            "Install bd CLI:\n"
+            "  curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/install.sh | bash\n\n"
+            "Or visit: https://github.com/steveyegge/beads#installation\n\n"
+            "After installation, restart Claude Code to reload the MCP server."
+        )
 
 
 class BdCommandError(BdError):
@@ -43,6 +62,12 @@ class BdCommandError(BdError):
         self.returncode = returncode
 
 
+class BdVersionError(BdError):
+    """Raised when bd version is incompatible with MCP server."""
+
+    pass
+
+
 class BdClient:
     """Client for calling bd CLI commands and parsing JSON output."""
 
@@ -51,6 +76,7 @@ class BdClient:
     actor: str | None
     no_auto_flush: bool
     no_auto_import: bool
+    working_dir: str | None
 
     def __init__(
         self,
@@ -59,6 +85,7 @@ class BdClient:
         actor: str | None = None,
         no_auto_flush: bool | None = None,
         no_auto_import: bool | None = None,
+        working_dir: str | None = None,
     ):
         """Initialize bd client.
 
@@ -68,6 +95,7 @@ class BdClient:
             actor: Actor name for audit trail (optional, loads from config if not provided)
             no_auto_flush: Disable automatic JSONL sync (optional, loads from config if not provided)
             no_auto_import: Disable automatic JSONL import (optional, loads from config if not provided)
+            working_dir: Working directory for bd commands (optional, loads from config/env if not provided)
         """
         config = load_config()
         self.bd_path = bd_path if bd_path is not None else config.beads_path
@@ -79,6 +107,18 @@ class BdClient:
         self.no_auto_import = (
             no_auto_import if no_auto_import is not None else config.beads_no_auto_import
         )
+        self.working_dir = working_dir if working_dir is not None else config.beads_working_dir
+
+    def _get_working_dir(self) -> str:
+        """Get working directory for bd commands.
+
+        Returns:
+            Working directory path, falls back to current directory if not configured
+        """
+        if self.working_dir:
+            return self.working_dir
+        # Fall back to PWD environment variable or current directory
+        return os.environ.get("PWD", os.getcwd())
 
     def _global_flags(self) -> list[str]:
         """Build list of global flags for bd commands.
@@ -117,11 +157,12 @@ class BdClient:
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                cwd=self._get_working_dir(),
             )
             stdout, stderr = await process.communicate()
         except FileNotFoundError as e:
             raise BdNotFoundError(
-                f"bd command not found at '{self.bd_path}'. Make sure bd is installed and in PATH."
+                BdNotFoundError.installation_message(self.bd_path)
             ) from e
 
         if process.returncode != 0:
@@ -143,6 +184,57 @@ class BdClient:
                 f"Failed to parse bd JSON output: {e}",
                 stderr=stdout_str,
             ) from e
+
+    async def _check_version(self) -> None:
+        """Check that bd CLI version meets minimum requirements.
+
+        Raises:
+            BdVersionError: If bd version is incompatible
+            BdNotFoundError: If bd command not found
+        """
+        # Minimum required version
+        min_version = (0, 9, 0)
+
+        try:
+            process = await asyncio.create_subprocess_exec(
+                self.bd_path,
+                "version",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self._get_working_dir(),
+            )
+            stdout, stderr = await process.communicate()
+        except FileNotFoundError as e:
+            raise BdNotFoundError(
+                BdNotFoundError.installation_message(self.bd_path)
+            ) from e
+
+        if process.returncode != 0:
+            raise BdCommandError(
+                f"bd version failed: {stderr.decode()}",
+                stderr=stderr.decode(),
+                returncode=process.returncode or 1,
+            )
+
+        # Parse version from output like "bd version 0.9.2"
+        version_output = stdout.decode().strip()
+        match = re.search(r"(\d+)\.(\d+)\.(\d+)", version_output)
+        if not match:
+            raise BdVersionError(
+                f"Could not parse bd version from: {version_output}"
+            )
+
+        version = tuple(int(x) for x in match.groups())
+
+        if version < min_version:
+            min_ver_str = ".".join(str(x) for x in min_version)
+            cur_ver_str = ".".join(str(x) for x in version)
+            install_cmd = "curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/install.sh | bash"
+            raise BdVersionError(
+                f"bd version {cur_ver_str} is too old. "
+                f"This MCP server requires bd >= {min_ver_str}. "
+                f"Update with: {install_cmd}"
+            )
 
     async def ready(self, params: ReadyWorkParams | None = None) -> list[Issue]:
         """Get ready work (issues with no blocking dependencies).
@@ -322,11 +414,12 @@ class BdClient:
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                cwd=self._get_working_dir(),
             )
             _stdout, stderr = await process.communicate()
         except FileNotFoundError as e:
             raise BdNotFoundError(
-                f"bd command not found at '{self.bd_path}'. Make sure bd is installed and in PATH."
+                BdNotFoundError.installation_message(self.bd_path)
             ) from e
 
         if process.returncode != 0:
@@ -349,11 +442,12 @@ class BdClient:
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                cwd=self._get_working_dir(),
             )
             stdout, stderr = await process.communicate()
         except FileNotFoundError as e:
             raise BdNotFoundError(
-                f"bd command not found at '{self.bd_path}'. Make sure bd is installed and in PATH."
+                BdNotFoundError.installation_message(self.bd_path)
             ) from e
 
         if process.returncode != 0:
@@ -404,18 +498,23 @@ class BdClient:
         if params.prefix:
             cmd.extend(["--prefix", params.prefix])
 
-        cmd.extend(self._global_flags())
+        # NOTE: Do NOT add --db flag for init!
+        # init creates a NEW database in the current directory.
+        # Only add actor-related flags.
+        if self.actor:
+            cmd.extend(["--actor", self.actor])
 
         try:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                cwd=self._get_working_dir(),
             )
             stdout, stderr = await process.communicate()
         except FileNotFoundError as e:
             raise BdNotFoundError(
-                f"bd command not found at '{self.bd_path}'. Make sure bd is installed and in PATH."
+                BdNotFoundError.installation_message(self.bd_path)
             ) from e
 
         if process.returncode != 0:

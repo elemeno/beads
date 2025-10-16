@@ -5,13 +5,39 @@ Enables AI agents to manage tasks using bd CLI through Model Context Protocol.
 
 ## Installing
 
+Install from PyPI:
+
+```bash
+# Using uv (recommended)
+uv tool install beads-mcp
+
+# Or using pip
+pip install beads-mcp
+```
+
+Add to your Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "beads": {
+      "command": "beads-mcp"
+    }
+  }
+}
+```
+
+### Development Installation
+
+For development, clone the repository:
+
 ```bash
 git clone https://github.com/steveyegge/beads
 cd beads/integrations/beads-mcp
 uv sync
 ```
 
-Add to your Claude Desktop config:
+Then use in Claude Desktop config:
 
 ```json
 {
@@ -23,10 +49,7 @@ Add to your Claude Desktop config:
         "/path/to/beads-mcp",
         "run",
         "beads-mcp"
-      ],
-      "env": {
-        "BEADS_PATH": "/home/user/.local/bin/bd",
-      }
+      ]
     }
   }
 }
@@ -35,6 +58,7 @@ Add to your Claude Desktop config:
 **Environment Variables** (all optional):
 - `BEADS_PATH` - Path to bd executable (default: `~/.local/bin/bd`)
 - `BEADS_DB` - Path to beads database file (default: auto-discover from cwd)
+- `BEADS_WORKING_DIR` - Working directory for bd commands (default: `$PWD` or current directory)
 - `BEADS_ACTOR` - Actor name for audit trail (default: `$USER`)
 - `BEADS_NO_AUTO_FLUSH` - Disable automatic JSONL sync (default: `false`)
 - `BEADS_NO_AUTO_IMPORT` - Disable automatic JSONL import (default: `false`)
